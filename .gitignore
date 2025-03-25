@@ -1,0 +1,11 @@
+# Virtual environment
+venv/
+
+# VSCode settings
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# Output files
+output/
