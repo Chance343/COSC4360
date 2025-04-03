@@ -47,16 +47,23 @@ def process_image(image_path, output_json_path):
 
     print(f"Image OCR saved to '{output_json_path}'")
 
-# ========= Main Execution =========
-if __name__ == "__main__":
-    # Uncomment the one you want to run
 
-    # === PDF Example ===
-    pdf_path = 'pdfs/Deposits.pdf'
+if __name__ == "__main__":
+
+    # PDFs
+    # pdf_path = 'pdfs/Deposits.pdf'
+    # pdf_output = 'output/pdf_ocr_output.json'
+    # process_pdf(pdf_path, pdf_output)
+    
+    pdf_path = 'pdfs/PricingUpdate.pdf'
     pdf_output = 'output/pdf_ocr_output.json'
     process_pdf(pdf_path, pdf_output)
 
-    # === Image Example ===
+    # Images
     # image_path = 'images/PC.png'
     # image_output = 'output/image_ocr_output.json'
     # process_image(image_path, image_output)
+    
+    image_path = 'images/PricingUpdate.png'
+    image_output = 'output/image_ocr_output.json'
+    process_image(image_path, image_output)
