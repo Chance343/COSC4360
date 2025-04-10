@@ -1,69 +1,46 @@
-import os
-import json
-import easyocr
-import cv2
-import numpy as np
-from pdf2image import convert_from_path
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pathlib import Path
+import shutil
+import uuid
+from ocr_processor import process_pdf, process_image
 
-# Initialize OCR reader once
-reader = easyocr.Reader(['en'], gpu=False)
+app = FastAPI()
 
-# ========= PDF OCR Function =========
-def process_pdf(pdf_path, output_json_path):
-    print(f"Processing PDF: {pdf_path}")
-    pages = convert_from_path(pdf_path, dpi=300)
-    output_data = []
+# Enable CORS for local frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # adjust if frontend runs on another port
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    for i, page in enumerate(pages):
-        img = np.array(page)
-        results = reader.readtext(img)
-        page_texts = [text for (_, text, _) in results]
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    filename = file.filename
+    suffix = Path(filename).suffix.lower()
+    temp_file_path = f"temp/{uuid.uuid4()}{suffix}"
 
-        output_data.append({
-            "page_number": i + 1,
-            "text": page_texts
-        })
+    # Save the uploaded file
+    Path("temp").mkdir(exist_ok=True)
+    with open(temp_file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
-    os.makedirs(os.path.dirname(output_json_path), exist_ok=True)
-    with open(output_json_path, "w", encoding='utf-8') as f:
-        json.dump(output_data, f, indent=4)
+    # Decide how to process
+    output_json_path = f"output/{Path(filename).stem}_ocr.json"
+    Path("output").mkdir(exist_ok=True)
 
-    print(f"PDF OCR saved to '{output_json_path}'")
+    if suffix == ".pdf":
+        process_pdf(temp_file_path, output_json_path)
+    elif suffix in [".png", ".jpg", ".jpeg"]:
+        process_image(temp_file_path, output_json_path)
+    else:
+        return JSONResponse(content={"error": "Unsupported file type"}, status_code=400)
 
-# ========= Image OCR Function =========
-def process_image(image_path, output_json_path):
-    print(f"Processing Image: {image_path}")
-    img = cv2.imread(image_path)
-    results = reader.readtext(img)
-    image_texts = [text for (_, text, _) in results]
+    # Return the result
+    with open(output_json_path, "r", encoding="utf-8") as f:
+        result = f.read()
 
-    os.makedirs(os.path.dirname(output_json_path), exist_ok=True)
-    with open(output_json_path, "w", encoding='utf-8') as f:
-        json.dump({
-            "image_file": os.path.basename(image_path),
-            "text": image_texts
-        }, f, indent=4)
-
-    print(f"Image OCR saved to '{output_json_path}'")
-
-
-if __name__ == "__main__":
-
-    # PDFs
-    # pdf_path = 'pdfs/Deposits.pdf'
-    # pdf_output = 'output/pdf_ocr_output.json'
-    # process_pdf(pdf_path, pdf_output)
-    
-    pdf_path = 'backend/pdfs/PricingUpdate.pdf'
-    pdf_output = 'backend/output/pdf_ocr_output.json'
-    process_pdf(pdf_path, pdf_output)
-
-    # Images
-    # image_path = 'images/PC.png'
-    # image_output = 'output/image_ocr_output.json'
-    # process_image(image_path, image_output)
-    
-    image_path = 'backend/images/PricingUpdate.png'
-    image_output = 'backend/output/image_ocr_output.json'
-    process_image(image_path, image_output)
+    return JSONResponse(content={"filename": filename, "ocr_result": result})
