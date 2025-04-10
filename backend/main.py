@@ -55,8 +55,8 @@ if __name__ == "__main__":
     # pdf_output = 'output/pdf_ocr_output.json'
     # process_pdf(pdf_path, pdf_output)
     
-    pdf_path = 'pdfs/PricingUpdate.pdf'
-    pdf_output = 'output/pdf_ocr_output.json'
+    pdf_path = 'backend/pdfs/PricingUpdate.pdf'
+    pdf_output = 'backend/output/pdf_ocr_output.json'
     process_pdf(pdf_path, pdf_output)
 
     # Images
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     # image_output = 'output/image_ocr_output.json'
     # process_image(image_path, image_output)
     
-    image_path = 'images/PricingUpdate.png'
-    image_output = 'output/image_ocr_output.json'
+    image_path = 'backend/images/PricingUpdate.png'
+    image_output = 'backend/output/image_ocr_output.json'
     process_image(image_path, image_output)
