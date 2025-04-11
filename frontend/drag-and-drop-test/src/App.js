@@ -14,14 +14,16 @@ function App() {
     }
 
     const fd = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      fd.append(`file${i + 1}`, files[i]);
-    }
+    // for (let i = 0; i < files.length; i++) {
+    //   fd.append(`file${i + 1}`, files[i]);
+    // }
+    fd.append("file", files[0]);
 
     setMsg("Uploading...");
     setProgress((prevState) => ({ ...prevState, started: true }));
     axios
-      .post("http://httpbin.org/post", fd, {
+      // .post("http://httpbin.org/post", fd, {
+      .post("http://localhost:8000/upload", fd, {
         onUploadProgress: (progressEvent) => {
           setProgress((prevState) => ({
             ...prevState,

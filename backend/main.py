@@ -5,13 +5,16 @@ from pathlib import Path
 import shutil
 import uuid
 from ocr_processor import process_pdf, process_image
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI()
 
-# Enable CORS for local frontend
+# Allow all CORS origins for testing — you can restrict this later
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # adjust if frontend runs on another port
+    allow_origins=["*"],  # e.g., ["http://localhost:3000"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,13 +23,19 @@ app.add_middleware(
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     filename = file.filename
+    logging.info(f"Received file: {filename}")
     suffix = Path(filename).suffix.lower()
     temp_file_path = f"temp/{uuid.uuid4()}{suffix}"
+
+    contents = await file.read()
+
+    logging.info(f"Content type: {file.content_type}")
+    logging.info(f"File size: {len(contents)} bytes")
 
     # Save the uploaded file
     Path("temp").mkdir(exist_ok=True)
     with open(temp_file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(contents)
 
     # Decide how to process
     output_json_path = f"output/{Path(filename).stem}_ocr.json"
