@@ -4,8 +4,13 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 import shutil
 import uuid
-from ocr_processor import process_pdf, process_image
 import logging
+import json
+
+from ocr_processor import process_pdf, process_image
+from nlp_temp import extract_price_table
+
+from nlp_processor import process_ocr_text
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,18 +43,58 @@ async def upload_file(file: UploadFile = File(...)):
         buffer.write(contents)
 
     # Decide how to process
-    output_json_path = f"output/{Path(filename).stem}_ocr.json"
+    output_path = f"output/{Path(filename).stem}_ocr.json"
     Path("output").mkdir(exist_ok=True)
 
     if suffix == ".pdf":
-        process_pdf(temp_file_path, output_json_path)
+        process_pdf(temp_file_path, output_path)
     elif suffix in [".png", ".jpg", ".jpeg"]:
-        process_image(temp_file_path, output_json_path)
+        process_image(temp_file_path, output_path)
     else:
         return JSONResponse(content={"error": "Unsupported file type"}, status_code=400)
 
-    # Return the result
-    with open(output_json_path, "r", encoding="utf-8") as f:
-        result = f.read()
+    # # Return the result
+    # with open(output_json_path, "r", encoding="utf-8") as f:
+    #     result = f.read()
+        
+    # # Parse JSON text into a Python dictionary/list
+    # ocr_data = json.loads(result)
+    
+    with open(output_path, "r") as f:
+        ocr_data = json.load(f)
+        
+    # Prepare text for NLP
+    if isinstance(ocr_data, dict) and "text" in ocr_data:
+        full_text = " ".join(ocr_data["text"])
+    elif isinstance(ocr_data, list):  # PDF case
+        all_text = []
+        for page in ocr_data:
+            all_text.extend(page.get("text", []))
+        full_text = " ".join(all_text)
+    else:
+        full_text = ""
 
-    return JSONResponse(content={"filename": filename, "ocr_result": result})
+    # Run NLP processing
+    # structured_data = process_ocr_text(full_text)
+    
+    structured_data = extract_price_table(ocr_data.get("text", []))
+        
+    # with open("output/nlp_output.json", "w", encoding="utf-8") as f:
+    #     json.dump(structured_data, f, indent=4)
+    with open("output/nlp_output.json", "w", encoding="utf-8") as f:
+        json.dump(structured_data, f, indent=4)
+
+    logging.info("NLP process complete")
+
+    
+    # return JSONResponse(content={
+    #     "filename": filename,
+    #     "ocr_text": full_text,
+    #     "structured_data": structured_data
+    # })
+    return JSONResponse(content={
+        "filename": filename,
+        "structured_data": structured_data
+    })
+
+    # return JSONResponse(content={"filename": filename, "ocr_result": result})
