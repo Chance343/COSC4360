@@ -6,6 +6,7 @@ function App() {
   const [progress, setProgress] = useState({ started: false, pc: 0 });
   const [msg, setMsg] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [downloadLink, setDownloadLink] = useState(null);
 
   const handleUpload = () => {
     if (!files) {
@@ -14,15 +15,11 @@ function App() {
     }
 
     const fd = new FormData();
-    // for (let i = 0; i < files.length; i++) {
-    //   fd.append(`file${i + 1}`, files[i]);
-    // }
     fd.append("file", files[0]);
 
     setMsg("Uploading...");
     setProgress((prevState) => ({ ...prevState, started: true }));
     axios
-      // .post("http://httpbin.org/post", fd, {
       .post("http://localhost:8000/upload", fd, {
         onUploadProgress: (progressEvent) => {
           setProgress((prevState) => ({
@@ -37,6 +34,14 @@ function App() {
       .then((res) => {
         setMsg("Upload successful");
         console.log(res.data);
+
+        // Extract the OCR result from the response
+      const { ocr_result } = res.data;
+
+      // Create a downloadable JSON file
+      const jsonBlob = new Blob([ocr_result], { type: "application/json" });
+      const downloadUrl = URL.createObjectURL(jsonBlob);
+      setDownloadLink(downloadUrl);
       })
       .catch((err) => {
         setMsg("Upload failed");
@@ -168,6 +173,22 @@ function App() {
         )}
 
         {msg && <span style={{ marginTop: "10px", fontSize: "16px" }}>{msg}</span>}
+
+        {downloadLink && (
+          <a
+            href={downloadLink}
+            download="test.json"
+            style={{
+              marginTop: "20px",
+              display: "inline-block",
+              textDecoration: "none",
+              color: "#007bff",
+              fontWeight: "bold",
+            }}
+          >
+            Download JSON File
+          </a>
+        )}
       </div>
     </div>
   );
