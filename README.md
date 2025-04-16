@@ -22,13 +22,17 @@ pip3 freeze > requirements.txt (anytime you want to update the dependencies)
 
 Backend (need a separate terminal)
     Activate API:
-        cd backend
+        cd backend_openAI
 
         DO THIS ONLY FIRST TIME:
         {
             python3 -m venv venv (i)
             source venv/bin/activate
             pip install -r requirements.txt
+        }
+        OTHER TIMES
+        {
+            source venv/bin/activate
         }
 
         uvicorn main:app --reload
