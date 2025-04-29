@@ -7,6 +7,9 @@ function App() {
   const [msg, setMsg] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [downloadLink, setDownloadLink] = useState(null);
+  const [jsonPreview, setJsonPreview] = useState(null);
+  const [fileType, setFileType] = useState("supply_quote"); // Default file type
+  const [customName, setCustomName] = useState(""); // Text box for custom name
 
   const handleUpload = () => {
     if (!files) {
@@ -19,8 +22,7 @@ function App() {
 
     setMsg("Uploading...");
     setProgress((prevState) => ({ ...prevState, started: true }));
-    axios
-      .post("http://localhost:8000/upload", fd, {
+    axios.post("http://localhost:8000/upload", fd, {
         onUploadProgress: (progressEvent) => {
           setProgress((prevState) => ({
             ...prevState,
@@ -35,16 +37,27 @@ function App() {
         setMsg("Upload successful");
         console.log(res.data);
 
-        // Extract the OCR result from the response
-      const { ocr_result } = res.data;
+        // Extract the structured data from the response
+        const { structured_data } = res.data;
 
-      // Create a downloadable JSON file
-      const jsonBlob = new Blob([ocr_result], { type: "application/json" });
-      const downloadUrl = URL.createObjectURL(jsonBlob);
-      setDownloadLink(downloadUrl);
+        // Update the JSON preview state
+        setJsonPreview(structured_data);
+
+        // Create a downloadable JSON file
+        const jsonBlob = new Blob([JSON.stringify(structured_data, null, 2)], { type: "application/json" });
+        const downloadUrl = URL.createObjectURL(jsonBlob);
+
+        // Set the download link with the custom name and file type
+        const fileName = `${customName || "document"}_${fileType}.json`;
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = fileName;
+        link.click();
+
+        setDownloadLink(downloadUrl);
       })
       .catch((err) => {
-        setMsg("Upload failed");
+        setMsg(err.response?.data?.error || "Upload failed");
         console.log(err);
       });
   };
@@ -98,6 +111,39 @@ function App() {
   return (
     <div className="App">
       <h1>File Uploader</h1>
+
+      {/* Dropdown for File Type */}
+      <div style={{ marginBottom: "20px" }}>
+        <label htmlFor="fileType" style={{ marginRight: "10px", marginLeft: "10px" }}>
+          Select Document Type:
+        </label>
+        <select
+          id="fileType"
+          value={fileType}
+          onChange={(e) => setFileType(e.target.value)}
+          style={{ padding: "5px", borderRadius: "5px" }}
+        >
+          <option value="supply_quote">Supply Quote</option>
+          <option value="supply_pricing_update">Supply Pricing Update</option>
+          <option value="shipping_update">Shipping Update</option>
+          <option value="vendor_invoice">Vendor Invoice</option>
+        </select>
+      </div>
+
+      {/* Text Box for Custom Name */}
+      <div style={{ marginBottom: "20px" }}>
+        <label htmlFor="customName" style={{ marginRight: "10px",marginLeft: "10px" }}>
+          Enter Customer Name:
+        </label>
+        <input
+          id="customName"
+          type="text"
+          value={customName}
+          onChange={(e) => setCustomName(e.target.value)}
+          placeholder="Enter file name"
+          style={{ padding: "5px", borderRadius: "5px", width: "200px" }}
+        />
+      </div>
 
       {/* Dropzone Area */}
       <div
@@ -174,10 +220,17 @@ function App() {
 
         {msg && <span style={{ marginTop: "10px", fontSize: "16px" }}>{msg}</span>}
 
+        {jsonPreview && (
+          <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ddd", borderRadius: "5px" }}>
+            <h3>JSON Preview:</h3>
+            <pre>{JSON.stringify(jsonPreview, null, 2)}</pre>
+          </div>
+        )}
+
         {downloadLink && (
           <a
             href={downloadLink}
-            download="test.json"
+            download={`${customName || "document"}_${fileType}.json`}
             style={{
               marginTop: "20px",
               display: "inline-block",
