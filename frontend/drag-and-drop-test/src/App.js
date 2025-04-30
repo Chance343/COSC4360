@@ -22,7 +22,7 @@ function App() {
 
     setMsg("Uploading...");
     setProgress((prevState) => ({ ...prevState, started: true }));
-    axios.post("http://localhost:8000/upload", fd, {
+    axios.post(`http://localhost:8000/upload/${fileType}`, fd, {
         onUploadProgress: (progressEvent) => {
           setProgress((prevState) => ({
             ...prevState,
