@@ -1,11 +1,15 @@
-# vision_extractor.py
 import json
 import re
+import os
 from openai import OpenAI
+from dotenv import load_dotenv
 
-client = OpenAI()
+load_dotenv()
 
 def extract_json_from_vision(data_url: str, prompt: str) -> dict:
+    # ✅ Create the OpenAI client INSIDE the function after loading .env
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     messages = [
         {
             "role": "user",
