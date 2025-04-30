@@ -1,6 +1,6 @@
 # prompt_factory.py
 def get_prompt_for(doc_type: str) -> str:
-    if doc_type == "pricing_update":
+    if doc_type == "supply_pricing_update":
         return (
             "Extract the price update table from this image.\n\n"
             "Return only a JSON list in this format:\n"
