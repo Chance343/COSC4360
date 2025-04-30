@@ -73,11 +73,11 @@ function App() {
 
     // Filter files to only allow .png and .jpeg
     const validFiles = droppedFiles.filter((file) =>
-      ["image/png", "image/jpeg"].includes(file.type)
+      ["image/png", "image/jpeg", "text/csv", "application/pdf", "text/plain"].includes(file.type)
     );
 
     if (validFiles.length === 0) {
-      setMsg("Only .png and .jpeg files are allowed");
+      setMsg("Only .png, .jpeg, .csv, .pdf, and .txt files are allowed");
       return;
     }
 
@@ -168,7 +168,7 @@ function App() {
           onChange={(e) => setFiles(e.target.files)}
           type="file"
           multiple
-          accept=".png, .jpeg"
+          accept=".png, .jpeg, .csv, .pdf, .txt"
           style={{ display: "none" }}
           id="fileInput"
         />
