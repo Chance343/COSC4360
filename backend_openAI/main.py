@@ -2,6 +2,7 @@
 import os
 import base64
 import json
+import psycopg2
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File
@@ -13,6 +14,8 @@ from pdf2image import convert_from_bytes
 from io import BytesIO
 from PIL import Image  # Needed to validate images
 import pandas as pd
+from db import insert_into_table, fetch_from_table
+
 
 from utils.merge_documents import merge_documents_by_key
 
@@ -28,6 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# POST - http://127.0.0.1:8000/upload/vendor_invoice
 @app.post("/upload/{doc_type}")
 async def upload_file(doc_type: str, file: UploadFile = File(...)):
     try:
@@ -131,12 +135,26 @@ async def upload_file(doc_type: str, file: UploadFile = File(...)):
             "timestamp": timestamp,
             "structured_data": structured_data,
         }
+        # inserting uploaded data into table
+        insert_into_table(file.filename, file.size, timestamp, doc_type, structured_data)
 
         os.makedirs("output", exist_ok=True)
         with open(f"output/{doc_type}_{timestamp}.json", "w", encoding="utf-8") as f:
             json.dump(output, f, indent=4)
 
         return JSONResponse(content=output)
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+# GET - http://127.0.0.1:8000/get
+@app.get("/get")
+async def get_documents():
+    try:
+        # fetching uploaded data from table
+        documents = fetch_from_table()
+
+        return JSONResponse(content=documents)
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
