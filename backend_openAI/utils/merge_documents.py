@@ -1,41 +1,39 @@
-from copy import deepcopy
+from collections import defaultdict
 
-def merge_documents_by_key(doc_type: str, pages: list) -> list:
-    if doc_type == "vendor_invoice":
-        key = "invoice_number"
-        merge_fields = ["vendor", "date", "grand_total"]
-    elif doc_type == "supply_quote":
-        key = "quote_number"
-        merge_fields = ["date", "vendor", "grand_total"]
-    elif doc_type == "supply_pricing_update":
-        key = "item"  # Or use item ID if you have one
-        return _flatten_list_of_dicts(pages)
-    elif doc_type == "shipping_update":
-        key = "shipment_id"
-        merge_fields = ["carrier", "origin", "destination", "estimated_arrival_date"]
-    else:
-        return _flatten_list_of_dicts(pages)
+def merge_documents_by_key(structured_data, key):
+    """
+    Merge document parts (e.g., multi-page invoices or quotes) by a shared key like invoice_number, quote_number, po_number, order_number, etc..
+    Each item in structured_data is a page result.
+    """
+    merged_map = defaultdict(lambda: {
+        key: None,
+        "date": None,
+        "vendor": None,
+        "items": [],
+        "subtotal": 0.0,
+        "tax": 0.0,
+        "grand_total": 0.0
+    })
 
-    # Merge grouped by key
-    merged = {}
-    all_entries = [entry for page in pages for entry in page]
+    for page in structured_data:
+        for doc in page:
+            doc_key = doc.get(key)
+            if not doc_key:
+                continue  # Skip if key is missing
 
-    for entry in all_entries:
-        entry_id = entry.get(key)
-        if not entry_id:
-            continue
+            merged = merged_map[doc_key]
 
-        if entry_id not in merged:
-            merged[entry_id] = deepcopy(entry)
-        else:
-            existing = merged[entry_id]
-            existing["items"].extend(entry.get("items", []))
+            if not merged[key]:
+                merged[key] = doc_key
+                merged["date"] = doc.get("date")
+                merged["vendor"] = doc.get("vendor")
 
-            for field in merge_fields:
-                if not existing.get(field) and entry.get(field):
-                    existing[field] = entry[field]
+            merged["items"].extend(doc.get("items", []))
 
-    return list(merged.values())
+            # Prefer latest non-zero values (likely from last page)
+            for field in ["subtotal", "tax", "grand_total"]:
+                val = doc.get(field)
+                if val and isinstance(val, (int, float)) and val > 0:
+                    merged[field] = val
 
-def _flatten_list_of_dicts(nested_list):
-    return [entry for sublist in nested_list for entry in sublist]
+    return list(merged_map.values())

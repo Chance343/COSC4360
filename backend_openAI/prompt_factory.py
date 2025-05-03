@@ -22,25 +22,36 @@ def get_prompt_for(doc_type: str) -> str:
         )
     elif doc_type == "supply_quote":
         return (
-            "You are reading a supply quote document. Extract all quoted items with pricing details.\n\n"
-            "Each item should include:\n"
-            "- item name\n"
-            "- quantity\n"
-            "- unit (e.g., pcs, ft, lb)\n"
-            "- unit_price (number)\n"
-            "- total (number)\n\n"
-            "Return a JSON array in this format:\n"
+            "You are analyzing a multi-page supply quote document. Pages may contain one or more full or partial quotes.\n\n"
+            "Group all pages together and merge line items that share the same quote_number.\n"
+            "Return exactly one quote object per quote_number.\n\n"
+            "For each quote, extract:\n"
+            "- quote_number\n"
+            "- date\n"
+            "- vendor\n"
+            "- items (each with: item, quantity, unit, unit_price, total)\n"
+            "- subtotal\n"
+            "- tax\n"
+            "- total_value\n\n"
+            "Return a **JSON array** of quotes like this:\n"
             "[\n"
             "  {\n"
-            "    \"item\": \"Steel Rod\",\n"
-            "    \"quantity\": 100,\n"
-            "    \"unit\": \"pcs\",\n"
-            "    \"unit_price\": 5.50,\n"
-            "    \"total\": 550.00\n"
+            "    \"quote_number\": \"Q123456\",\n"
+            "    \"date\": \"2025-03-21\",\n"
+            "    \"vendor\": \"Mountainland Supply Company\",\n"
+            "    \"items\": [\n"
+            "      { \"item\": \"item A\", \"quantity\": 2, \"unit\": \"ea\", \"unit_price\": 12.34, \"total\": 24.68 },\n"
+            "      { \"item\": \"item B\", \"quantity\": 3, \"unit\": \"ea\", \"unit_price\": 5.00, \"total\": 15.00 }\n"
+            "    ],\n"
+            "    \"subtotal\": 39.68,\n"
+            "    \"tax\": 2.32,\n"
+            "    \"total_value\": 42.00\n"
             "  }\n"
             "]\n\n"
-            "Respond only with valid JSON. No text or markdown outside the JSON block."
+            "Respond only with valid JSON. Do not include explanations or markdown."
         )
+
+
 
     elif doc_type == "shipping_update":
         return (
@@ -69,26 +80,35 @@ def get_prompt_for(doc_type: str) -> str:
 
     elif doc_type == "vendor_invoice":
         return (
-            "You are analyzing a multi-page invoice document. Each page may contain one or more full or partial invoices.\n\n"
-            "Extract data for each invoice that appears on this page. For each invoice, include:\n"
+            "You are analyzing a multi-page invoice document. Pages may contain one or more full or partial invoices.\n\n"
+            "Group all pages together and merge line items that share the same invoice_number.\n"
+            "Return exactly one invoice object per invoice_number.\n\n"
+            "For each invoice, extract:\n"
             "- invoice_number\n"
             "- date\n"
             "- vendor\n"
             "- items (each with: description, qty, unit_price, total)\n"
+            "- subtotal\n"
+            "- tax\n"
             "- grand_total\n\n"
-            "If a page continues a previously listed invoice (same invoice_number), include only new `items`.\n"
-            "Do not repeat the vendor, date, or grand_total fields for continuation pages.\n"
-            "If nothing new appears on the page, return an empty array.\n\n"
             "Return a **JSON array** of invoices like this:\n"
             "[\n"
             "  {\n"
             "    \"invoice_number\": \"S10690577.001\",\n"
+            "    \"date\": \"2025-03-21\",\n"
+            "    \"vendor\": \"Mountainland Supply Company\",\n"
             "    \"items\": [\n"
-            "      { \"description\": \"item A\", \"qty\": 2, \"unit_price\": 12.34, \"total\": 24.68 }\n"
-            "    ]\n"
+            "      { \"description\": \"item A\", \"qty\": 2, \"unit_price\": 12.34, \"total\": 24.68 },\n"
+            "      { \"description\": \"item B\", \"qty\": 3, \"unit_price\": 5.00, \"total\": 15.00 }\n"
+            "    ],\n"
+            "    \"subtotal\": 39.68,\n"
+            "    \"tax\": 2.32,\n"
+            "    \"grand_total\": 42.00\n"
             "  }\n"
             "]\n\n"
             "Respond only with JSON. Do not include explanations or markdown code blocks."
         )
+
+
     else:
         raise ValueError(f"Unsupported document type: {doc_type}")
