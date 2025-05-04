@@ -17,10 +17,14 @@ function App() {
       return;
     }
 
+// Reset JSON preview and download link
+    setJsonPreview(null);
+    setDownloadLink(null);
+
     const fd = new FormData();
     fd.append("file", files[0]);
 
-    setMsg("Uploading...");
+    setMsg("Processing...");
     setProgress((prevState) => ({ ...prevState, started: true }));
     axios.post(`http://localhost:8000/upload/${fileType}`, fd, {
         onUploadProgress: (progressEvent) => {
@@ -34,7 +38,7 @@ function App() {
         },
       })
       .then((res) => {
-        setMsg("Upload successful");
+        setMsg("Process successful");
         console.log(res.data);
 
         // Extract the structured data from the response
@@ -57,9 +61,19 @@ function App() {
         setDownloadLink(downloadUrl);
       })
       .catch((err) => {
-        setMsg(err.response?.data?.error || "Upload failed");
+        setMsg(err.response?.data?.error || "Process failed");
         console.log(err);
       });
+  };
+
+  const handleCompanyUpload = () => {
+    // Simulate uploading to the company's system
+    setMsg("Uploading to Company system...");
+  
+    // Simulate a delay for the upload process
+    setTimeout(() => {
+      setMsg("Successfully uploaded to Company");
+    }, 2000); // 2-second delay
   };
 
   const handleDrop = (e) => {
@@ -67,6 +81,11 @@ function App() {
     e.stopPropagation(); // Prevent default behavior and stop propagation
 
     setIsDragging(false); // Reset the dragging state
+
+    // Reset JSON preview and download link
+    setJsonPreview(null);
+    setDownloadLink(null);
+    setMsg(null);
 
     // Get the dropped files
     const droppedFiles = Array.from(e.dataTransfer.files);
@@ -82,7 +101,6 @@ function App() {
     }
 
     setFiles(validFiles); // Update state with valid files
-    setMsg(null); // Clear any previous error message
   };
 
   const handleDragOver = (e) => {
@@ -108,9 +126,24 @@ function App() {
     }
   };
 
+  const handleDeleteFile = (index) => {
+    const updatedFiles = Array.from(files); // Create a copy of the files array
+    updatedFiles.splice(index, 1); // Remove the file at the specified index
+    setFiles(updatedFiles); // Update the state with the new array
+  };
+
   return (
     <div className="App">
-      <h1>File Uploader</h1>
+
+      <div
+        style={{
+          padding: "0 20px",
+          maxWidth: "12000px",
+          margin: "0 auto", 
+        }}
+      >
+      
+      <h1><center>Document Processor</center></h1>
 
       {/* Dropdown for File Type */}
       <div style={{ marginBottom: "20px" }}>
@@ -133,14 +166,14 @@ function App() {
       {/* Text Box for Custom Name */}
       <div style={{ marginBottom: "20px" }}>
         <label htmlFor="customName" style={{ marginRight: "10px",marginLeft: "10px" }}>
-          Enter Customer Name:
+          Enter Vendor's Name:
         </label>
         <input
           id="customName"
           type="text"
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
-          placeholder="Enter file name"
+          placeholder="Enter Vendor's name"
           style={{ padding: "5px", borderRadius: "5px", width: "200px" }}
         />
       </div>
@@ -189,14 +222,43 @@ function App() {
 
       {/* File List */}
       {files && (
-        <ul>
+        <ul style={{ listStyleType: "none", padding: 0 }}>
           {Array.from(files).map((file, index) => (
-            <li key={index}>{file.name}</li>
+            <li
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "10px",
+                padding: "5px 10px",
+                border: "1px solid #ddd",
+                borderRadius: "5px",
+              }}
+            >
+              <span>{file.name}</span>
+              <button
+                onClick={() => handleDeleteFile(index)}
+                style={{
+                  backgroundColor: "red",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "20px",
+                  height: "20px",
+                  cursor: "pointer",
+                  textAlign: "center",
+                  lineHeight: "20px",
+                }}
+              >
+                X
+              </button>
+            </li>
           ))}
         </ul>
       )}
 
-      {/* Upload Button and Progress Bar */}
+      {/* Process Button and Progress Bar */}
       <div
         style={{
           display: "flex",
@@ -207,7 +269,7 @@ function App() {
       >
         <button onClick={handleUpload} className="upload-button">
           <i className="fas fa-upload" style={{ marginRight: "0px" }}></i>
-          Upload
+          Process
         </button>
 
         {progress.started && (
@@ -218,7 +280,11 @@ function App() {
           ></progress>
         )}
 
-        {msg && <span style={{ marginTop: "10px", fontSize: "16px" }}>{msg}</span>}
+        {msg && (
+          <span style={{ marginTop: "10px", fontSize: "16px" }}>
+            {msg}
+          </span>
+        )}
 
         {jsonPreview && (
           <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ddd", borderRadius: "5px" }}>
@@ -228,20 +294,24 @@ function App() {
         )}
 
         {downloadLink && (
-          <a
-            href={downloadLink}
-            download={`${customName || "document"}_${fileType}.json`}
-            style={{
-              marginTop: "20px",
-              display: "inline-block",
-              textDecoration: "none",
-              color: "#007bff",
-              fontWeight: "bold",
-            }}
-          >
-            Download JSON File
-          </a>
+          <div style={{ marginTop: "20px", display: "flex", gap: "10px", alignItems: "center" }}>
+            <a
+              href={downloadLink}
+              download={`${customName || "document"}_${fileType}.json`}
+              style={{
+                textDecoration: "none",
+                color: "#007bff",
+                fontWeight: "bold",
+              }}
+            >
+              Download JSON File
+            </a>
+            <button onClick={handleCompanyUpload} className="upload-button">
+              Upload to Company
+            </button>
+          </div>
         )}
+      </div>
       </div>
     </div>
   );
