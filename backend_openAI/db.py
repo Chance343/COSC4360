@@ -3,9 +3,9 @@ import psycopg2
 from psycopg2 import extras
 
 db_host = "localhost"
-db_name = "ocr"
-db_user = "postgres"
-db_password = "Welc0me#123"
+db_name = ""
+db_user = ""
+db_password = ""
 
 # Insert Query
 def insert_into_table(original_filename, file_size, upload_timestamp, document_type, structured_data) -> str:
