@@ -36,3 +36,22 @@ Backend (need a separate terminal)
         }
 
         uvicorn main:app --reload
+
+Database (need a separate terminal)
+    Install PostgreSQL:
+        PostgreSQL Installer Link - https://www.postgresql.org/download/
+        pgAdmin 4 Installer Link - https://www.pgadmin.org/download/
+
+    Configure Database (using pgAdmin 4):
+        1. Open pgAdmin 4
+        2. Go to Servers -> PostgreSQL 17 -> Databases
+        3. Right-click Databases to create new database
+        4. Enter DB name (to be saved for further backend configuration)
+
+    Configure Application connection to Database:
+        1. open backend_openAI/db.py in Editor
+        2. edit the db configurations:
+            a. db_host = "localhost"
+            b. db_name = <name given during database configuration>
+            c. db_user = <user name>
+            d. db_password = <user password>
