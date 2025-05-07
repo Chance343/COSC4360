@@ -40,9 +40,8 @@ Backend (need a separate terminal)
 Database (need a separate terminal)
     
     Install PostgreSQL:
-    
-        PostgreSQL Installer Link - https://www.postgresql.org/download/
 
+        PostgreSQL Installer Link - https://www.postgresql.org/download/
         pgAdmin 4 Installer Link - https://www.pgadmin.org/download/
 
     Configure Database (using pgAdmin 4):
