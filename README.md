@@ -37,7 +37,7 @@ Backend (need a separate terminal)
 
         uvicorn main:app --reload
 
-Database (need a separate terminal)
+Database (only requires configuration)
     
     Install PostgreSQL:
 
@@ -57,3 +57,5 @@ Database (need a separate terminal)
             b. db_name = <name given during database configuration>
             c. db_user = <user name>
             d. db_password = <user password>
+
+    Once complete run "uvicorn main:app --reload" to reload backend
