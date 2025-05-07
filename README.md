@@ -21,6 +21,11 @@ source .venv/bin/activate
 pip3 freeze > requirements.txt (anytime you want to update the dependencies)
 
 Backend (need a separate terminal)
+    
+    Configure ENV:
+        Open backend_openAI folder in Editor
+        create '.env' file with OPENAI_API_KEY=<api_key>
+
     Activate API:
         cd backend_openAI
 
@@ -40,7 +45,6 @@ Backend (need a separate terminal)
 Database (only requires configuration)
     
     Install PostgreSQL:
-
         PostgreSQL Installer Link - https://www.postgresql.org/download/
         pgAdmin 4 Installer Link - https://www.pgadmin.org/download/
 
