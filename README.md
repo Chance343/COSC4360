@@ -1,4 +1,17 @@
-You need to be running the backend to be able to uplaod the file to the backend
+This project is a document processing pipeline developed as a senior project. It uses OCR and natural language processing to extract structured data from PDFs and images, with a frontend for drag-and-drop file uploads, a backend API that processes files with OpenAI's GPT-4 Vision model, and a PostgreSQL database to store results.
+
+My Contributions:
+- Collaborated on planning and testing the backend API.
+- Assisted in data structuring and integrating NLP results.
+- Supported frontend-backend communication through API endpoints.
+
+Technologies Used:
+- Python (FastAPI, OpenAI API)
+- JavaScript (React for frontend)
+- PostgreSQL
+- EasyOCR and the NLP model spaCy
+
+You need to be running the backend to be able to upload the file to the backend
 
 
 
